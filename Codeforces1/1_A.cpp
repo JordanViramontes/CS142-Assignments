@@ -3,6 +3,7 @@
 #include <set>
 #include <fstream>
 #include <string>
+#include <memory>
 
 using std::cout, std::cin, std::vector, std::set, std::ifstream, std::getline, std::string, std::endl, std::stoi;
 
@@ -13,17 +14,11 @@ struct State {
     int currentShelf = -1;
     vector<vector<int>> shelf;
     vector<int> booksLeft;
-    State(vector<vector<int>> s, int b, int c) {
+    State(vector<vector<int>> s, int b, int c, int sc) {
         shelf = s;
         bookPtr = b;
         currentShelf = c;
-        for(unsigned int i = 0; i < s.size(); i++) {
-            int newScore = 0;
-            for(unsigned int j = 0; j < s.at(i).size(); j++) {
-                newScore += s.at(i).at(j);
-            }
-            if (newScore > score) score = newScore;
-        }
+        score = sc;
     }
 };
 
@@ -85,7 +80,7 @@ int main(int argc, char* argv[]) {
     // init state and set
     set<State, StateComparison> states;
     vector<vector<int>> v(maxLvl);
-    State init = State(v, 0, 0);
+    State init = State(v, 0, 0, 0);
     states.insert(init);
     bool foundSolution = false;
 
@@ -113,14 +108,21 @@ int main(int argc, char* argv[]) {
         // generate new states
         vector<vector<int>> shelf = state.shelf;
         bool newShelf = false; // so that we dont have more states than needed
-        for (unsigned int i = 0; i < shelf.size(); i++) {
-            if (i < state.currentShelf) continue; // make sure we aren't going out of order
+        for (unsigned int i = (unsigned int)state.currentShelf; i < shelf.size(); i++) {
             if (shelf.at(i).size() == 0 && newShelf) continue; // avoid unneccesary states
             else if (shelf.at(i).size() == 0) newShelf = true;
 
+            // make new shelf
             vector<vector<int>> newShelf = shelf;
             newShelf.at(i).push_back(books.at(bookPtr));
-            State newState = State(newShelf, bookPtr + 1, i);
+
+            // make new score
+            int score = 0;
+            for (auto i : newShelf.at(i)) { score += i; }
+            if (score < state.score) { score = state.score; }
+
+            // make new state
+            State newState = State(newShelf, bookPtr + 1, i, score);
             states.insert(newState); 
             // printState(newState);
         }
