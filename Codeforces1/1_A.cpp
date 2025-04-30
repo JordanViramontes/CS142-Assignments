@@ -14,7 +14,7 @@ struct State {
     int currentShelf = -1;
     vector<vector<int>> shelf;
     vector<int> booksLeft;
-    State(vector<vector<int>> s, int b, int c, int sc) {
+    State(vector<vector<int>> &s, int b, int c, int sc) {
         shelf = s;
         bookPtr = b;
         currentShelf = c;
@@ -24,7 +24,9 @@ struct State {
 
 // used for making sure the set orders the boards by score
 struct StateComparison {
-    bool operator()(const State& a, const State& b) const { return a.score <= b.score; }
+    bool operator()(const State& a, const State& b) const { 
+        return a.score <= b.score;
+     }
 };
 
 void printState(State s) {
@@ -56,15 +58,15 @@ int main(int argc, char* argv[]) {
     int totalBooks = -1;
     int maxLvl = -1;
     string parseStr = "";
-    for (auto i : str) {
-        if (i == ' ') {
-            i += 1;
+    for (unsigned int i = 0; i < str.size(); i++) {
+        if (str.at(i) == ' ') {
+            // i += 1;
             totalBooks = stoi(parseStr);
             parseStr = "";
             continue;
         }
-        parseStr += i;
-        if (i == str.at(str.size()-1)) {
+        parseStr += str.at(i);
+        if (i == str.size()-1) {
             maxLvl = stoi(parseStr);
         }
     }

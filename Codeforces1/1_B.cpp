@@ -94,17 +94,17 @@ int main(int argc, char* argv[]) {
     vector<int> radiations(4, -1);
     string parseStr = "";
     unsigned int radiationsPtr = 0;
-    for (auto i : str) {
-        if (i == ' ') {
-            i += 1;
+    for (unsigned int i = 0; i < str.size(); i++) {
+        if (str.at(i) == ' ') {
             radiations.at(radiationsPtr) = stoi(parseStr);
             radiationsPtr++;
             parseStr = "";
             continue;
         }
-        parseStr += i;
-        if (i == str.at(str.size()-1)) {
+        parseStr += str.at(i);
+        if (i == str.size()-1) {
             radiations.at(radiationsPtr) = stoi(parseStr);
+            parseStr = "";
         }
     }
     pair<int, int> radiatorDist(radiations.at(0), radiations.at(1));
@@ -115,17 +115,17 @@ int main(int argc, char* argv[]) {
     int northWindow;
     int southWindow;
     parseStr = "";
-    for (auto i : str) {
-        if (i == ' ') {
-            i += 1;
+    for (unsigned int i = 0; i < str.size(); i++) {
+        if (str.at(i) == ' ') {
             southWindow = stoi(parseStr);
             radiationsPtr++;
             parseStr = "";
             continue;
         }
-        parseStr += i;
-        if (i == str.at(str.size()-1)) {
+        parseStr += str.at(i);
+        if (i == str.size()-1) {
             northWindow = stoi(parseStr);
+            parseStr = "";
         }
     }
     
@@ -142,17 +142,17 @@ int main(int argc, char* argv[]) {
         getline(cin, str);
         parseStr = "";
         pair<int, int> coords;
-        for (auto i : str) {
-            if (i == ' ') {
-                i += 1;
+        for (unsigned int i = 0; i < str.size(); i++) {
+            if (str.at(i) == ' ') {
                 coords.first = stoi(parseStr);
                 radiationsPtr++;
                 parseStr = "";
                 continue;
             }
-            parseStr += i;
-            if (i == str.at(str.size()-1)) {
+            parseStr += str.at(i);
+            if (i == str.size()-1) {
                 coords.second = stoi(parseStr);
+                parseStr = "";
             }
         }
 
