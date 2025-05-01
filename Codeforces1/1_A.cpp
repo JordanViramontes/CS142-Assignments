@@ -1,52 +1,44 @@
 #include <iostream>
 #include <vector>
 #include <set>
-#include <fstream>
 #include <string>
 #include <memory>
 
-using std::cout, std::cin, std::vector, std::set, std::ifstream, std::getline, std::string, std::endl, std::stoi;
+using std::cout, std::cin, std::vector, std::set, std::string, std::endl, std::shared_ptr, std::make_shared;
 
 // state struct
 struct State {
-    int score = -1;
-    int bookPtr = -1;
-    int currentShelf = -1;
-    vector<vector<int>> shelf;
-    vector<int> booksLeft;
-    State(vector<vector<int>> &s, int b, int c, int sc) {
-        shelf = s;
+    int row = 0;
+    int rowScore = 0;
+    int score = 0;
+    int bookPtr = 0;
+    State(int r, int rS, int s, int b) {
+        row = r;
+        rowScore = rS;
+        score = s;
         bookPtr = b;
-        currentShelf = c;
-        score = sc;
     }
+};
+
+struct Node {
+    shared_ptr<State> left = nullptr;
+    shared_ptr<State> right = nullptr;
 };
 
 // used for making sure the set orders the boards by score
 struct StateComparison {
-    bool operator()(const State& a, const State& b) const { 
-        return a.score <= b.score;
-     }
+    bool operator()(const shared_ptr<State>& a, const shared_ptr<State>& b) const {
+        if (a->score != b->score) return a->score < b->score;
+        if (a->bookPtr != b->bookPtr) return a->bookPtr > b->bookPtr;
+        return a->row < b->row;
+    }
 };
 
-void printState(State s) {
-    cout << "score: " << s.score << endl;
-    for (unsigned int i = 0; i < s.shelf.size(); i++) {
-        if (s.shelf.at(i).size() == 0) cout << "-1";
-        for (unsigned int j = 0; j < s.shelf.at(i).size(); j++) {
-            cout << s.shelf.at(i).at(j) << ", ";
-        }
-        cout << endl;
-    }
-    cout << endl;
-}
-
-// for printing the overall set
-void printSet(set<State, StateComparison> s) {
-    for (auto i : s) {
-        cout << i.score << ", ";
-    }
-    cout << endl;
+void printState(shared_ptr<State> state) {
+    cout << "score: " << state->score << endl;
+    cout << "row: " << state->row << endl;
+    cout << "rowScore: " << state->rowScore << endl;
+    cout << "newbook: " << state->bookPtr << endl << endl;
 }
 
 int main(int argc, char* argv[]) {
@@ -54,35 +46,24 @@ int main(int argc, char* argv[]) {
     string str = "";
     
     // get total books and level
-    getline(cin, str);
-    int totalBooks = -1;
-    int maxLvl = -1;
+    int totalBooks = 0;
+    int maxLvl = 0;
     string parseStr = "";
-    for (unsigned int i = 0; i < str.size(); i++) {
-        if (str.at(i) == ' ') {
-            // i += 1;
-            totalBooks = stoi(parseStr);
-            parseStr = "";
-            continue;
-        }
-        parseStr += str.at(i);
-        if (i == str.size()-1) {
-            maxLvl = stoi(parseStr);
-        }
-    }
+    cin >> totalBooks >> maxLvl;
     
-    vector<int> books(totalBooks, -1);
+    vector<int> books = vector<int>(totalBooks, 0);
     
     // parse input
     for (int i = 0; i < totalBooks; i++) {
-        getline(cin, str);
-        books.at(i) = stoi(str);
+        int book = 0;
+        cin >> book;
+        books.at(i) = book;
     }
 
     // init state and set
-    set<State, StateComparison> states;
-    vector<vector<int>> v(maxLvl);
-    State init = State(v, 0, 0, 0);
+    set<shared_ptr<State>, StateComparison> states;
+    shared_ptr<State> init = make_shared<State>(0, 0, 0, 0);
+    bool initStateFlag = true;
     states.insert(init);
     bool foundSolution = false;
 
@@ -90,49 +71,48 @@ int main(int argc, char* argv[]) {
     while (!foundSolution) {
     // for (int i = 0; i < 3; i++) {
         // check if we have possible states
-        if (states.size() == 0) {
-            cout << "no more states left!" << endl;
+        if (states.empty()) {
+            cout << "no answer" << endl;
             break;
         }
 
         // get most potential state
-        State state = *states.begin(); // highest priority
+        shared_ptr<State> state = *states.begin(); // highest priority
         states.erase(states.begin()); // remove the board from the queue
-        int bookPtr = state.bookPtr;
+        int bookPtr = state->bookPtr;
 
         // check if we're done
-        if (state.bookPtr > totalBooks - 1) {
-            cout << state.score << endl;
+        if (state->bookPtr > totalBooks - 1) {
+            cout << state->score << endl;
             foundSolution = true;
             break;
         }
 
-        // generate new states
-        vector<vector<int>> shelf = state.shelf;
-        bool newShelf = false; // so that we dont have more states than needed
-        for (unsigned int i = (unsigned int)state.currentShelf; i < shelf.size(); i++) {
-            if (shelf.at(i).size() == 0 && newShelf) continue; // avoid unneccesary states
-            else if (shelf.at(i).size() == 0) newShelf = true;
+        // make new state on current row
+        int bookScore = books.at(state->bookPtr);
+        int rowScore = state->rowScore + bookScore;
+        int score = state->score;
+        if (rowScore > state->score) score = rowScore;
+        
+        shared_ptr<State> newState = make_shared<State>(state->row, rowScore, score, state->bookPtr + 1);
+        states.insert(newState);
 
-            // make new shelf
-            vector<vector<int>> newShelf = shelf;
-            newShelf.at(i).push_back(books.at(bookPtr));
-
-            // make new score
-            int score = 0;
-            for (auto i : newShelf.at(i)) { score += i; }
-            if (score < state.score) { score = state.score; }
-
-            // make new state
-            State newState = State(newShelf, bookPtr + 1, i, score);
-            states.insert(newState); 
-            // printState(newState);
+        // check if we're at first loop
+        if (initStateFlag) {
+            initStateFlag = false;
+            continue;
         }
+        
+        // check if we're at the end
+        if (state->row >= maxLvl - 1) continue;
 
-        // printSet(states);
+        // make new state on next row
+        rowScore = bookScore;
+        score = state->score;
+        if (rowScore > state->score) score = rowScore;
+        
+        shared_ptr<State> newState2 = make_shared<State>(state->row + 1, rowScore, score, state->bookPtr + 1);
+        states.insert(newState2);
     }
-
-
-
     return 0;
 }

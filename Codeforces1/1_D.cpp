@@ -59,47 +59,24 @@ pair<vector<int>, int> calculateMoves(vector<int> points, vector<int> moveList, 
     }
 
     bestState.first.push_back(bestMove);
-    // cout << "best: " << bestState.score << ", with moves: ";
-    // for (auto i : bestState.moveList) {
-    //     cout << i << ", ";
-    // }
-    // cout << "\n------------------------------------" << endl;
 
     return bestState;
 }
 
 int main(int argc, char* argv[]) {
     // ifstream cin("input.txt");
-    string str = "";
 
     // get dart info
     int sectors = -1;
-    string parseStr = "";
-    getline(cin, str);
-    for (unsigned int i = 0; i < str.size(); i++) {
-        if (str.at(i) == ' ') {
-            sectors = stoi(parseStr);
-            parseStr = "";
-            continue;
-        }
-        parseStr += str.at(i);
-        if (i == str.size()-1) {
-            startingNumber = stoi(parseStr);
-            parseStr = "";
-        }
-    }
+    scanf("%d %d", &sectors, &startingNumber);
 
     // get points
     vector<int> points = {0};
     for (int i = 0; i < sectors; i++) {
-        getline(cin, str);
-        points.push_back(stoi(str));
+        int p;
+        scanf("%d", &p);
+        points.push_back(p);
     }
-
-    // cout << "sectors: " << sectors << ", init: " << startingNumber << endl;
-    // for (auto i : points) {
-    //     cout << i << endl;
-    // }
 
     // vector<int> moves;
     pair<vector<int>, int> fin = calculateMoves(points, {}, startingNumber, 4);

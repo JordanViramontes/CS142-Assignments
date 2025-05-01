@@ -11,7 +11,7 @@ int roomHeight = 500;
 int roomWidth = 500;
 int windowSize = 100;
 
-double cross(pair<int, int> coord1, pair<int, int> coord2) {
+long double cross(pair<int, int> coord1, pair<int, int> coord2) {
     return (coord1.second*coord2.first) - (coord1.first*coord2.second);
 }
 
@@ -29,17 +29,17 @@ bool testWindow(int north, int south, pair<int, int> coords) {
     north -= south;
     coords.first -= south;
     pair<int, int> line(north, 500);
-    pair<int, int> coords2(coords.first-windowSize, coords.second);
+    pair<int, int> coords2;
+    if (north >= 0) coords2 = pair<int, int>(coords.first-windowSize, coords.second);
+    else coords2 = pair<int, int>(coords.first+windowSize, coords.second);
 
     // cout << "line: " << line.first << ", " << line.second << endl;
     // cout << "line2: " << line2.first << ", " << line2.second << endl;
     // cout << "coords: " << coords.first << ", " << coords.second << endl;
 
-
-    
     // find crosses
-    double cross1 = cross(line, coords);
-    double cross2 = cross(line, coords2);
+    long double cross1 = cross(line, coords);
+    long double cross2 = cross(line, coords2);
     // cout << "c: " << cross1 << ", " << cross2 << endl;
 
     // if one is opposite sign
@@ -47,10 +47,10 @@ bool testWindow(int north, int south, pair<int, int> coords) {
     return false;
 }
 
-bool testRadiation(pair<int, int> rad, pair<int, int> radDist, pair<int, int> coords) {
-    double dist = sqrt(pow(rad.first-coords.first, 2) + pow(rad.second-coords.second, 2));
+bool testRadiation(pair<int, int> r, pair<int, int> c, pair<int, int> coords) {
+    long double dist = sqrt(pow(r.first-coords.first, 2) + pow(r.second-coords.second, 2));
     // cout << "dist: " << dist << endl;
-    if (dist <= radDist.second && dist >= radDist.first) return true;
+    if (dist <= c.second && dist >= c.first) return true;
     return false;
 }
 
@@ -68,7 +68,7 @@ bool testTv(pair<int, int> coords) {
         pair<int, int> line(-200, 200);
         coords.first -= 200;
         coords.second -= 300; // transpose + mid gap
-        double c = cross(line, coords);
+        long double c = cross(line, coords);
         if (c < 0) return true;
         return false;
     }
@@ -76,8 +76,8 @@ bool testTv(pair<int, int> coords) {
     // below
     else if (coords.second <= 200) {
         pair<int, int> line(200, 200);
-        double c = cross(line, coords);
-        cout << "below c: " << c << endl;
+        long double c = cross(line, coords);
+        // cout << "below c: " << c << endl;
         if (c < 0) return true;
         return false;
     }
@@ -107,8 +107,8 @@ int main(int argc, char* argv[]) {
             parseStr = "";
         }
     }
-    pair<int, int> radiatorDist(radiations.at(0), radiations.at(1));
-    pair<int, int> radiator(radiations.at(2), radiations.at(3));
+    pair<int, int> c(radiations.at(0), radiations.at(1));
+    pair<int, int> r(radiations.at(2), radiations.at(3));
 
     // get window pairs
     getline(cin, str);
@@ -129,8 +129,8 @@ int main(int argc, char* argv[]) {
         }
     }
     
-    // cout << "radiator at : " << radiator.first << ", " << radiator.second << endl;
-    // cout << "radiatorDist: " << radiatorDist.first << ", " << radiatorDist.second << endl;
+    // cout << "r at : " << r.first << ", " << r.second << endl;
+    // cout << "c: " << c.first << ", " << c.second << endl;
     // cout << "north at : " << northWindow.first << ", " << northWindow.second << endl;
     // cout << "south at: " << southWindow.first << ", " << southWindow.second << endl;
 
@@ -167,7 +167,7 @@ int main(int argc, char* argv[]) {
         bool isWindow = testWindow(northWindow, southWindow, coords);
 
         // test radiation
-        bool isRadiation = testRadiation(radiator, radiatorDist, coords);
+        bool isRadiation = testRadiation(r, c, coords);
 
         // test tv
         bool isTV = testTv(coords);
