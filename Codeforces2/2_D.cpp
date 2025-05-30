@@ -12,6 +12,7 @@ struct Node {
     shared_ptr<Node> R = nullptr;
     int num = 0;
     int max = 0;
+    int height = 1;
     // int best = 0;
     // int index = 0;
  
@@ -25,40 +26,85 @@ struct Node {
 class Tree {
     public:
     shared_ptr<Node> head = nullptr;
+
+    void insert(shared_ptr<Node> newNode) {
+        head = insert(head, newNode);
+    }    
  
-    void insert(shared_ptr<Node> n) {
-        // if head is empty
-        if (head == nullptr) {
-            head = n;
-            return;
+    shared_ptr<Node> insert(shared_ptr<Node> node, shared_ptr<Node> newNode) {
+        if (!node) return newNode;
+    
+        if (newNode->num < node->num)
+            node->L = insert(node->L, newNode);
+        else
+            node->R = insert(node->R, newNode);
+    
+        updateHeight(node);
+        int balance = getBalance(node);
+    
+        // Left Left Case
+        if (balance > 1 && newNode->num < node->L->num)
+            return rotateRight(node);
+    
+        // Right Right Case
+        if (balance < -1 && newNode->num >= node->R->num)
+            return rotateLeft(node);
+    
+        // Left Right Case
+        if (balance > 1 && newNode->num >= node->L->num) {
+            node->L = rotateLeft(node->L);
+            return rotateRight(node);
         }
- 
-        // go through binary tree
-        shared_ptr<Node> curr = head;
-        while (true) {
-            // less
-            if (n->num < curr->num) {
-                // if L is empty
-                if (curr->L == nullptr) {
-                    curr->L = n;
-                    break;
-                }
-                else {
-                    curr = curr->L;
-                }
-            }
-            else {
-                if (curr->R == nullptr) {
-                    curr->R = n;
-                    break;
-                }
-                else {
-                    curr = curr->R;
-                }
-            }
-            
+    
+        // Right Left Case
+        if (balance < -1 && newNode->num < node->R->num) {
+            node->R = rotateRight(node->R);
+            return rotateLeft(node);
         }
+    
+        return node;
     }
+    
+
+    int height(shared_ptr<Node> n) {
+        return n ? n->height : 0;
+    }
+    
+    int getBalance(shared_ptr<Node> n) {
+        return n ? height(n->L) - height(n->R) : 0;
+    }
+    
+    void updateHeight(shared_ptr<Node> n) {
+        n->height = 1 + max(height(n->L), height(n->R));
+    }
+
+    // rotations
+    shared_ptr<Node> rotateRight(shared_ptr<Node> y) {
+        shared_ptr<Node> x = y->L;
+        shared_ptr<Node> T2 = x->R;
+    
+        x->R = y;
+        y->L = T2;
+    
+        updateHeight(y);
+        updateHeight(x);
+    
+        return x;
+    }
+
+    shared_ptr<Node> rotateLeft(shared_ptr<Node> x) {
+        shared_ptr<Node> y = x->R;
+        shared_ptr<Node> T2 = y->L;
+    
+        y->L = x;
+        x->R = T2;
+    
+        updateHeight(x);
+        updateHeight(y);
+    
+        return y;
+    }
+    
 
     int findIncreasingMax(shared_ptr<Node> n, int num) {
         if (n == nullptr) return 0;

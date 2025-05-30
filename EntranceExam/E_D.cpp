@@ -9,9 +9,24 @@ using std::ifstream, std::pair, std::string, std::cout, std::endl, std::vector;
 // global lookup table
 vector<vector<int>> lookup;
 
-void printLookupTable() {
+void printLookupTable(string str1, string str2) {
+    cout << endl;
     for (unsigned int i = 0; i < lookup.size(); i++) {
+        // str1 header
+        if (i == 0) {
+            cout << "\t";
+            for (unsigned int i = 0; i < str2.size(); i++) {
+                cout << str2.at(i) << "\t";
+            }
+            cout << endl;
+        }
+        
         for (unsigned int j = 0; j < lookup.at(i).size(); j++) {
+            if (j == 0 && i != 0) {
+                cout << str1.at(i-1) << "  ";
+            }
+            else if (j == 0) cout << "   ";
+
             cout << lookup.at(i).at(j) << "\t";
         }
         cout << endl;
@@ -22,16 +37,21 @@ void printLookupTable() {
 int findOptimalPath(const string &str1, const string &str2, int it1, int it2); // definition to avoid compiler errors
 
 int compare(const string &str1, const string &str2, int it1, int it2, int dir) {
-    // base case: we're at an edge
+    // base case: we're at an edge (already calculated)
     if (it1 == 0 || it2 == 0) {
-        return lookup.at(it1).at(it2);
+        switch(dir) {
+            case(0): return lookup.at(it1-1).at(it2-1); break;
+            case(1): return lookup.at(it1-1).at(it2); break;
+            case(2): return lookup.at(it1).at(it2-1); break;
+            default: return -1; break;
+        }
     }
 
-    // when dir equals 0: diag, 1: up, 2: left
+    // when dir equals 0: diag, 1: up, 2: left, this switch case will get num the optimal number in the direction specified
     int num = -1;
     switch(dir) {
         case (0):
-            if (lookup.at(it1-1).at(it2-1) != -1) num = lookup.at(it1-1).at(it2-1); // look up
+            if (lookup.at(it1-1).at(it2-1) != -1) num = lookup.at(it1-1).at(it2-1); // look diag
             else num = findOptimalPath(str1, str2, it1-1, it2-1);
             break;
         case (1):
@@ -39,7 +59,7 @@ int compare(const string &str1, const string &str2, int it1, int it2, int dir) {
             else num = findOptimalPath(str1, str2, it1-1, it2);
             break;
         case (2):
-            if (lookup.at(it1).at(it2-1) != -1) num = lookup.at(it1).at(it2-1); // look up
+            if (lookup.at(it1).at(it2-1) != -1) num = lookup.at(it1).at(it2-1); // look left
             else num = findOptimalPath(str1, str2, it1, it2-1);
             break;
         default:
@@ -49,6 +69,7 @@ int compare(const string &str1, const string &str2, int it1, int it2, int dir) {
 
     // compare and give new number
     if (str1.at(it1-1) != str2.at(it2-1)) num++;
+    else num = lookup.at(it1-1).at(it2-1);
     return num;
 }
 
@@ -75,14 +96,14 @@ int findOptimalPath(const string &str1, const string &str2, int it1, int it2) {
 }
 
 int main(int argc, char* argv[]) {
-    ifstream file("input.txt");
+    // ifstream file("input.txt");
     string str = "blank";
     string str1 = "";
     string str2 = "";
-    getline(file, str);
+    getline(std::cin, str);
     int strLen = std::stoi(str);
-    getline(file, str1);
-    getline(file, str2);
+    getline(std::cin, str1);
+    getline(std::cin, str2);
 
     if (strLen == 0) { // edge case
         cout << "0";
@@ -96,11 +117,8 @@ int main(int argc, char* argv[]) {
         lookup.at(0).at(i) = i;
     }
 
-    cout << findOptimalPath(str1, str2, strLen, strLen) << endl;
-    cout << findOptimalPath(str2, str1, strLen, strLen);
-
-
-    // printLookupTable();
+    cout << findOptimalPath(str1, str2, strLen, strLen);
+    // printLookupTable(str1, str2);
 
     return 0;
 }
